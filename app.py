@@ -57,11 +57,11 @@ if st.session_state.pagina == 'home':
         if st.button("Abrir Batelada"): ir_para('4.1')
 
     with col1: # Ou col2, conforme sua preferência de layout
-    st.dark_config("### 💧 Escoamento em Tubos")
-    st.write("**Conceito:** Cálculo de Re e Fator de Atrito")
-    st.write("Determine o regime de escoamento e visualize sua posição no Diagrama de Moody.")
-    if st.button("Abrir Diagrama de Moody"):
-        ir_para('moody')
+        st.dark_config("### 💧 Escoamento em Tubos")
+        st.write("**Conceito:** Cálculo de Re e Fator de Atrito")
+        st.write("Determine o regime de escoamento e visualize sua posição no Diagrama de Moody.")
+        if st.button("Abrir Diagrama de Moody"):
+            ir_para('moody')
 
     # No final da seção 'home', adicione:
     st.write("---")
