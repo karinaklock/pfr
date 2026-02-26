@@ -1,1 +1,4 @@
-numpy matplotlib scipy
+numpy 
+matplotlib
+scipy
+streamlit
