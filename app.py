@@ -3,106 +3,99 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
-# Configurações iniciais
-st.set_page_config(page_title="Simulador de Reatores - Ka", layout="wide")
+# Configuração da página
+st.set_page_config(page_title="Biblioteca de Reatores - Ka", layout="wide")
 
-# Menu de navegação na lateral
-st.sidebar.title("📚 Biblioteca de Exercícios")
-exercicio = st.sidebar.selectbox(
-    "Escolha o exemplo:",
-    ["Exemplo 4.7: Pirólise do Etano (PFR)", "Exemplo 4.2: Produção de Fenol (CSTR)"]
-)
+# --- ESTILIZAÇÃO (Opcional para deixar mais bonito) ---
+st.markdown("""
+    <style>
+    .main { background-color: #f5f7f9; }
+    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #007bff; color: white; }
+    </style>
+    """, unsafe_allow_html=True)
 
-# --- CONSTANTES GLOBAIS ---
-RG1, RG2 = 8.314, 82.06
+# --- CONTROLE DE NAVEGAÇÃO ---
+if 'pagina' not in st.session_state:
+    st.session_state.pagina = 'home'
 
-# ==========================================
-# OPÇÃO 1: PIRÓLISE DO ETANO (PFR)
-# ==========================================
-if exercicio == "Exemplo 4.7: Pirólise do Etano (PFR)":
-    st.title("🔥 Pirólise do Etano com $NO$ (PFR)")
-    
-    with st.expander("📖 Enunciado", expanded=False):
-        st.write("Cálculo dos fluxos molares em um PFR isotérmico com mecanismo de 6 reações.")
-
-    # Sidebar específica para PFR
-    st.sidebar.header("⚙️ Parâmetros Operacionais")
-    T_base = st.sidebar.number_input("Temperatura (K)", value=1050.0)
-    P = st.sidebar.number_input("Pressão (atm)", value=1.0)
-    Qf = st.sidebar.number_input("Vazão (cm³/s)", value=600.0)
-    
-    # Inputs de Cinética (com valores default do código original)
-    st.sidebar.header("🧪 Cinética (Ai e Ei)")
-    A = []
-    E = []
-    A_defaults = [1e14, 3e14, 3.4e12, 1e12, 1e13, 1e12]
-    E_defaults = [217.6, 165.3, 28.5, 0.0, 200.8, 0.0]
-    
-    for i in range(6):
-        with st.sidebar.expander(f"Reação {i+1}"):
-            A.append(st.number_input(f"A{i+1}", value=A_defaults[i], format="%.1e"))
-            E.append(st.number_input(f"E{i+1} (kJ/mol)", value=E_defaults[i]) * 1000)
-
-    # Função das EDOs (conforme o mecanismo do Exemplo 4.7)
-    def pfr_system(v, y, T, P, A, E):
-        N_total = max(np.sum(y), 1e-15)
-        Q = (RG2 * T / P) * N_total
-        C = y / Q
-        k = [A[i] * np.exp(-E[i] / (RG1 * T)) for i in range(6)]
-        r = [k[0]*C[0]*C[5], k[1]*C[1], k[2]*C[3]*C[0], k[3]*C[3]*C[5], k[4]*C[6], k[5]*C[1]*C[6]]
-        return [-r[0]-r[2]+r[5], r[0]-r[1]+r[2]-r[5], r[1], r[1]-r[2]-r[3]+r[4], r[2], -r[0]-r[3]+r[4]+r[5], r[0]+r[3]-r[4]-r[5]]
-
-    # Simulação
-    y0 = [0.95*(Qf*P/(RG2*T_base)), 0, 0, 0, 0, 0.05*(Qf*P/(RG2*T_base)), 0]
-    sol = solve_ivp(pfr_system, (0, 1500), y0, args=(T_base, P, A, E), t_eval=np.linspace(0, 1500, 200), method='LSODA')
-
-    # Gráfico PFR
-    fig, ax = plt.subplots()
-    ax.plot(sol.t, sol.y[0], label="C2H6")
-    ax.plot(sol.t, sol.y[2], label="C2H4")
-    ax.set_xlabel("Volume (cm³)")
-    ax.set_ylabel("Fluxo (mol/s)")
-    ax.legend()
-    st.pyplot(fig)
+def ir_para(nome_da_pagina):
+    st.session_state.pagina = nome_da_pagina
 
 # ==========================================
-# OPÇÃO 2: PRODUÇÃO DE FENOL (CSTR)
+# PÁGINA INICIAL (HOME)
 # ==========================================
-elif exercicio == "Exemplo 4.2: Produção de Fenol (CSTR)":
-    st.title("⚗️ Produção de Fenol em CSTR")
+if st.session_state.pagina == 'home':
+    st.title("📚 Biblioteca Interativa de Engenharia Química")
+    st.subheader("Selecione um exercício para iniciar a simulação:")
+    st.write("---")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.info("### Exemplo 4.7")
+        st.write("**Tipo:** PFR (Reator Tubular)")
+        st.write("**Sistema:** Pirólise do Etano com NO")
+        st.write("Simulação diferencial de 6 reações elementares com variação de volume.")
+        if st.button("Abrir Simulação 4.7"):
+            ir_para('4.7')
+
+    with col2:
+        st.success("### Exemplo 4.2")
+        st.write("**Tipo:** CSTR (Reator de Mistura)")
+        st.write("**Sistema:** Produção de Fenol")
+        st.write("Cálculo algébrico de volume e conversão para reações de primeira ordem.")
+        if st.button("Abrir Simulação 4.2"):
+            ir_para('4.2')
+
+# ==========================================
+# PÁGINA DO EXERCÍCIO 4.7 (PFR)
+# ==========================================
+elif st.session_state.pagina == '4.7':
+    if st.button("⬅️ Voltar para o Início"):
+        ir_para('home')
+        st.rerun()
+
+    st.title("🔥 Pirólise do Etano (PFR)")
     
-    with st.expander("📖 Enunciado e Solução", expanded=True):
-        st.markdown("""
-        Reação: $(C_6H_5)C(CH_3)_2OOH \\to (C_6H_5)OH + (CH_3)_2CO$
+    # Agora a barra lateral só aparece aqui
+    st.sidebar.header("Configurações 4.7")
+    T = st.sidebar.slider("Temperatura (K)", 900, 1200, 1050)
+    # ... (restante do código do PFR que já fizemos)
+    st.write("Aqui entra todo o seu simulador do etano...")
+
+# ==========================================
+# PÁGINA DO EXERCÍCIO 4.2 (CSTR)
+# ==========================================
+elif st.session_state.pagina == '4.2':
+    if st.button("⬅️ Voltar para o Início"):
+        ir_para('home')
+        st.rerun()
+
+    st.title("⚗️ Produção de Fenol (CSTR)")
+    
+    # Especificações técnicas bem visíveis
+    col_inf, col_sim = st.columns([1, 2])
+    
+    with col_inf:
+        st.markdown("### Especificações")
+        st.write("- **Fase:** Líquida")
+        st.write("- **Cinética:** Primeira Ordem")
+        st.latex(r"r = k \cdot C_{CHP}")
         
-        Considerando uma reação de primeira ordem em fase líquida, onde a variação de volume é desprezada ($Q = Q_f$).
-        O objetivo é encontrar o volume do reator ($V_R$) para atingir uma conversão específica ($X_A$).
-        """)
-        # Exibe a fórmula do volume conforme a imagem enviada
-        st.latex(r"V_R = \frac{Q_f \cdot X_A}{k \cdot (1 - X_A)}")
+        # Inputs específicos
+        qf = st.number_input("Vazão (m³/h)", value=26.9)
+        k_val = st.number_input("k (h⁻¹)", value=4.12)
+        xa = st.slider("Conversão Alvo", 0.1, 0.99, 0.85)
 
-    # Inputs baseados na imagem 7a8dda.png e 7a8dbb.png
-    st.sidebar.header("⚙️ Parâmetros do CSTR")
-    Qf_cstr = st.sidebar.number_input("Vazão (m³/h)", value=26.9)
-    k_cstr = st.sidebar.number_input("Constante Cinética k (hr⁻¹)", value=4.12)
-    Xa_target = st.sidebar.slider("Conversão Desejada (Xa)", 0.01, 0.99, 0.85)
-
-    # Cálculo do Volume
-    Vr = (Qf_cstr * Xa_target) / (k_cstr * (1 - Xa_target)) #
-
-    # Resultados
-    st.success(f"### Volume do Reator Necessário: {Vr:.2f} m³") #
-
-    # Gráfico de Sensibilidade (Volume vs Conversão)
-    st.subheader("Sensibilidade: Volume vs Conversão")
-    X_range = np.linspace(0.1, 0.95, 50)
-    V_range = (Qf_cstr * X_range) / (k_cstr * (1 - X_range))
-    
-    fig2, ax2 = plt.subplots()
-    ax2.plot(X_range, V_range, 'g-', linewidth=2)
-    ax2.scatter([Xa_target], [Vr], color='red', label=f'Ponto Operacional ({Xa_target*100}%)')
-    ax2.set_xlabel("Conversão (Xa)")
-    ax2.set_ylabel("Volume (m³)")
-    ax2.grid(True, alpha=0.3)
-    ax2.legend()
-    st.pyplot(fig2)
+    with col_sim:
+        vr = (qf * xa) / (k_val * (1 - xa))
+        st.metric("Volume do Reator (Vr)", f"{vr:.2f} m³")
+        
+        # Gráfico
+        x_plot = np.linspace(0.01, 0.95, 100)
+        v_plot = (qf * x_plot) / (k_val * (1 - x_plot))
+        fig, ax = plt.subplots()
+        ax.plot(x_plot, v_plot)
+        ax.scatter([xa], [vr], color='red')
+        ax.set_title("Curva de Dimensionamento CSTR")
+        st.pyplot(fig)
