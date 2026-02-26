@@ -56,6 +56,15 @@ if st.session_state.pagina == 'home':
         st.write("**Tipo:** Reator de Volume Constante")
         if st.button("Abrir Batelada"): ir_para('4.1')
 
+    # No final da seção 'home', adicione:
+    st.write("---")
+    col_sobre, _ = st.columns([1, 1])
+    with col_sobre:
+        st.write("### 👩‍🔬 Sobre a Autora")
+        st.write("Conheça quem desenvolveu este projeto e acesse materiais complementares.")
+        if st.button("Ver Perfil e Contato"):
+            ir_para('sobre')
+
 # ==========================================
 # EXEMPLO 4.7: PFR (PIRÓLISE DO ETANO)
 # ==========================================
@@ -147,3 +156,38 @@ elif st.session_state.pagina == 'levenspiel':
     x_v = np.linspace(0, x_l + 0.05, 100)
     y_v = [lev_f(xi) for xi in x_v]
     fig4, ax4 = plt.subplots(); ax4.plot(x_v, y_v); ax4.fill_between(x_v[:95], [lev_f(i) for i in x_v[:95]], alpha=0.3); st.pyplot(fig4)
+
+# ==========================================
+# PÁGINA: SOBRE MIM
+# ==========================================
+elif st.session_state.pagina == 'sobre':
+    if st.button("⬅️ Voltar para o Menu Principal"):
+        ir_para('home')
+        st.rerun()
+
+    col_foto, col_texto = st.columns([1, 2])
+
+    with col_foto:
+        # Você pode substituir este link pela URL de uma foto sua no GitHub ou LinkedIn
+        st.image("https://cdn-icons-png.flaticon.com/512/1995/1995531.png", width=200)
+
+    with col_texto:
+        st.title("Olá, eu sou a Ka! 👋")
+        st.markdown("""
+        Bem-vindo à minha biblioteca interativa de Engenharia Química. 
+        Este projeto nasceu da vontade de transformar cálculos complexos de reatores 
+        em ferramentas visuais e acessíveis para estudantes e profissionais.
+        
+        Aqui você encontra simuladores baseados nos maiores clássicos da literatura, 
+        como Fogler e Levenspiel, desenvolvidos com Python e integrados ao Google Colab.
+        """)
+        
+        st.write("---")
+        st.subheader("📺 Acompanhe meu conteúdo")
+        st.write("No meu canal do YouTube, eu explico os conceitos por trás desses simuladores e resolvo exercícios passo a passo.")
+        
+        # Botão estilizado para o YouTube
+        st.video("https://www.youtube.com/@karinakc") # Mostra o vídeo mais recente ou o canal
+        st.link_button("Ir para o Canal no YouTube", "https://www.youtube.com/@karinakc", type="primary")
+
+    st.sidebar.info("Acesse o canal para tutoriais de Python e Engenharia Química.")
