@@ -56,6 +56,13 @@ if st.session_state.pagina == 'home':
         st.write("**Tipo:** Reator de Volume Constante")
         if st.button("Abrir Batelada"): ir_para('4.1')
 
+    with col1: # Ou col2, conforme sua preferência de layout
+    st.dark_config("### 💧 Escoamento em Tubos")
+    st.write("**Conceito:** Cálculo de Re e Fator de Atrito")
+    st.write("Determine o regime de escoamento e visualize sua posição no Diagrama de Moody.")
+    if st.button("Abrir Diagrama de Moody"):
+        ir_para('moody')
+
     # No final da seção 'home', adicione:
     st.write("---")
     col_sobre, _ = st.columns([1, 1])
@@ -191,3 +198,74 @@ elif st.session_state.pagina == 'sobre':
         st.link_button("Ir para o Canal no YouTube", "https://www.youtube.com/@karinakc", type="primary")
 
     st.sidebar.info("Acesse o canal para tutoriais de Python e Engenharia Química.")
+
+elif st.session_state.pagina == 'moody':
+    if st.button("⬅️ Voltar"):
+        ir_para('home')
+        st.rerun()
+
+    st.title("📉 Diagrama de Moody Interativo")
+
+    # --- SIDEBAR: ENTRADAS ---
+    st.sidebar.header("📋 Dados da Tubulação")
+    vazao = st.sidebar.number_input("Vazão (m³/h)", value=10.0)
+    diametro_mm = st.sidebar.number_input("Diâmetro Interno (mm)", value=50.0)
+    rugosidade_mm = st.sidebar.number_input("Rugosidade absoluta ε (mm)", value=0.045, format="%.4f")
+    
+    st.sidebar.header("🧪 Propriedades (Água @ 20°C)")
+    rho = st.sidebar.number_input("Densidade (kg/m³)", value=998.0)
+    mu = st.sidebar.number_input("Viscosidade Dinâmica (Pa·s)", value=0.001, format="%.4f")
+
+    # --- CÁLCULOS ---
+    # Convertendo unidades
+    Q = vazao / 3600 # m³/s
+    D = diametro_mm / 1000 # m
+    area = np.pi * (D**2) / 4
+    v = Q / area # m/s
+    
+    re = (rho * v * D) / mu
+    rr = rugosidade_mm / diametro_mm # Rugosidade relativa
+
+    # Cálculo do Fator de Atrito (Swamee-Jain para Re > 4000)
+    if re > 4000:
+        f = 0.25 / (np.log10((rr / 3.7) + (5.74 / (re**0.9))))**2
+    elif re > 0:
+        f = 64 / re # Escoamento Laminar
+    else:
+        f = 0
+
+    # --- EXIBIÇÃO DE RESULTADOS ---
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Reynolds (Re)", f"{re:.0f}")
+    c2.metric("Regime", "Turbulento" if re > 4000 else "Laminar" if re < 2000 else "Transição")
+    c3.metric("Fator de Atrito (f)", f"{f:.4f}")
+
+    # --- PLOTAGEM DO GRÁFICO ---
+    st.subheader("Posicionamento no Diagrama de Moody")
+    fig5, ax5 = plt.subplots(figsize=(10, 6))
+
+    # Desenhar Curvas de Rugosidade Relativa (Fundo do Gráfico)
+    re_plot = np.logspace(3, 8, 500)
+    # Rugosidades padrão para as linhas de fundo
+    for eps_r in [0, 1e-6, 1e-5, 1e-4, 1e-3, 0.01, 0.05]:
+        f_plot = [0.25 / (np.log10((eps_r / 3.7) + (5.74 / (r**0.9))))**2 if r > 2000 else 64/r for r in re_plot]
+        ax5.plot(re_plot, f_plot, color='gray', alpha=0.2, linewidth=0.5)
+
+    # Linha do Escoamento Laminar (64/Re)
+    re_lam = np.logspace(2.8, 3.3, 20)
+    ax5.plot(re_lam, 64/re_lam, color='blue', label='Laminar (64/Re)')
+
+    # SOBREPOSIÇÃO: PONTO DO USUÁRIO
+    if re > 0:
+        ax5.scatter([re], [f], color='red', s=100, zorder=5, label='Sua Condição', marker='*')
+        ax5.annotate(f"  f={f:.4f}", (re, f), color='red', fontweight='bold')
+
+    ax5.set_xscale('log')
+    ax5.set_yscale('log')
+    ax5.set_xlabel('Número de Reynolds (Re)')
+    ax5.set_ylabel('Fator de Atrito (f)')
+    ax5.set_xlim(1e3, 1e8)
+    ax5.set_ylim(0.008, 0.1)
+    ax5.grid(True, which='both', linestyle='--', alpha=0.5)
+    ax5.legend()
+    st.pyplot(fig5)
