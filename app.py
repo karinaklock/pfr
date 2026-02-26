@@ -6,20 +6,34 @@ from scipy.integrate import solve_ivp, quad
 # Configuração da página
 st.set_page_config(page_title="Biblioteca de Reatores - Ka", layout="wide")
 
-# --- ESTILIZAÇÃO ---
+# --- ESTILIZAÇÃO ATUALIZADA ---
 st.markdown("""
     <style>
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #007bff; color: white; font-weight: bold; }
-    .stMetric { background-color: #ffffff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    /* Estilo para os botões */
+    .stButton>button { 
+        width: 100%; 
+        border-radius: 5px; 
+        height: 3em; 
+        background-color: #007bff; 
+        color: white; 
+        font-weight: bold; 
+    }
+    /* Correção para os cards de métricas (Gráfico de Levenspiel) */
+    [data-testid="stMetricValue"] {
+        color: #003366 !important; /* Azul escuro para o número */
+        font-weight: bold;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #333333 !important; /* Cinza escuro para o rótulo */
+    }
+    div[data-testid="metric-container"] {
+        background-color: #f0f2f6; /* Fundo cinza claro para contraste */
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+    }
     </style>
     """, unsafe_allow_html=True)
-
-# --- CONTROLE DE NAVEGAÇÃO ---
-if 'pagina' not in st.session_state:
-    st.session_state.pagina = 'home'
-
-def ir_para(nome_da_pagina):
-    st.session_state.pagina = nome_da_pagina
 
 # ==========================================
 # PÁGINA INICIAL (HOME)
